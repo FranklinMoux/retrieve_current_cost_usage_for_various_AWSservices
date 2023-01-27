@@ -1,0 +1,43 @@
+# retrieve the current cost of usage for various services in AWS
+# uses the AWS Cost Explorer service to retrieve cost data for the current month for all services and for a specific service (Amazon S3 in this case
+
+import boto3
+
+# Connect to the AWS Cost Explorer service
+costexplorer = boto3.client('ce')
+
+# Get the current month's cost for all services
+costs = costexplorer.get_cost_and_usage(
+    TimePeriod={
+        'Start': '2021-01-01',
+        'End': '2021-01-31'
+    },
+    Granularity='MONTHLY',
+    Metrics=['UnblendedCost']
+)
+
+# Print the total cost for all services
+print(costs['Total']['UnblendedCost']['Amount'])
+
+# Get the cost for a specific service (e.g. Amazon S3)
+s3_costs = costexplorer.get_cost_and_usage(
+    TimePeriod={
+        'Start': '2021-01-01',
+        'End': '2021-01-31'
+    },
+    Granularity='MONTHLY',
+    Metrics=['UnblendedCost'],
+    GroupBy=[{
+        'Type': 'DIMENSION',
+        'Key': 'SERVICE'
+    }],
+    Filter={
+        'Dimensions': {
+            'Key': 'SERVICE',
+            'Values': ['Amazon S3']
+        }
+    }
+)
+
+# Print the total cost for Amazon S3
+print(s3_costs['Groups'][0]['Metrics']['UnblendedCost']['Amount'])
